@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "871087515687",
+    "project_id": "recipe-mate-2d9a8",
+    "storage_bucket": "recipe-mate-2d9a8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:871087515687:android:d8ad40351ba2e2001e8602",
+        "android_client_info": {
+          "package_name": "com.example.recipemate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "871087515687-q9ngv7ug8ogldiejp0sbt74ki4lghqim.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8Hqv5Jw-7fHoJ9lMXJGfDOMUsAT5ZbuQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "871087515687-q9ngv7ug8ogldiejp0sbt74ki4lghqim.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_500">#FFBB86FC</color>
+
+
+    <!-- Gray Scale -->
+    <color name="gray_light">#FFE0E0E0</color>
+    <color name="gray_medium">#FF9E9E9E</color>
+    <color name="gray_dark">#FF616161</color>
+    <color name="gray_divider">#1F000000</color>
+
+    <!-- Status Colors -->
+    <color name="red">#FFFF5252</color>
+    <color name="green">#FF4CAF50</color>
+    <color name="blue">#FF2196F3</color>
+    <color name="orange">#FFFF9800</color>
+
+    <!-- Background Colors -->
+    <color name="background_light">#FFF5F5F5</color>
+    <color name="surface_light">#FFFFFFFF</color>
+
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+</resources>

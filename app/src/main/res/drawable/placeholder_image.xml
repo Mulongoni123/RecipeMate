@@ -1,0 +1,31 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Background -->
+    <path
+        android:fillColor="#F5F5F5"
+        android:pathData="M0,0h100v100h-100z" />
+
+    <!-- Plate/Circle -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M20,40a30,30 0,1 1,60 0a30,30 0,1 1,-60 0z" />
+
+    <!-- Utensil handles -->
+    <path
+        android:strokeColor="#BDBDBD"
+        android:strokeWidth="2"
+        android:pathData="M30,30l5,10" />
+    <path
+        android:strokeColor="#BDBDBD"
+        android:strokeWidth="2"
+        android:pathData="M70,30l-5,10" />
+
+    <!-- Food representation -->
+    <path
+        android:fillColor="#C8E6C9"
+        android:pathData="M35,45a15,8 0,1 1,30 0a15,8 0,1 1,-30 0z" />
+</vector>

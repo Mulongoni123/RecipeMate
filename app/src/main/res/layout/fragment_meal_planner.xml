@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Header -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Meal Planner"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Calendar -->
+    <CalendarView
+        android:id="@+id/calendarView"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Selected Date -->
+    <TextView
+        android:id="@+id/tvSelectedDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Selected Date"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Add Recipe Button -->
+    <Button
+        android:id="@+id/btnAddRecipe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Recipe to Plan"
+        android:backgroundTint="@color/green"
+        android:textColor="@color/white"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Meal Plan List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMealPlan"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Empty State -->
+    <LinearLayout
+        android:id="@+id/emptyState"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/ic_meal_plan"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No meals planned for this day"
+            android:textSize="16sp"
+            android:textColor="@color/gray_medium" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tap 'Add Recipe' to plan your meals"
+            android:textSize="14sp"
+            android:textColor="@color/gray_light"
+            android:layout_marginTop="8dp" />
+
+        <!-- Add this after btnAddRecipe -->
+        <Button
+            android:id="@+id/btnGroceryList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Generate Grocery List"
+            android:backgroundTint="@color/blue"
+            android:textColor="@color/white"
+            android:layout_marginBottom="16dp"
+            android:drawableStart="@drawable/ic_grocery"
+            android:drawablePadding="8dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

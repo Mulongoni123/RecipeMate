@@ -85,6 +85,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:baselineAligned="false"
                 android:orientation="horizontal"
                 android:padding="16dp">
 
@@ -93,14 +94,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/tvFavoritesCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0"
+                        android:text="@string/_0_"
                         android:textColor="@color/purple_500"
                         android:textSize="24sp"
                         android:textStyle="bold" />
@@ -108,7 +109,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/favorites"
+                        android:text="@string/favoriteS"
                         android:textColor="@color/gray_dark"
                         android:textSize="12sp" />
 
@@ -119,14 +120,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/tvRecipesTried"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0"
+                        android:text="@string/_0"
                         android:textColor="@color/green"
                         android:textSize="24sp"
                         android:textStyle="bold" />
@@ -134,7 +135,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/recipes_tried"
+                        android:text="@string/recipes_trieD"
                         android:textColor="@color/gray_dark"
                         android:textSize="12sp" />
 
@@ -145,14 +146,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/tvCookingStreak"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/_0"
+                        android:text="@string/_7"
                         android:textColor="@color/orange"
                         android:textSize="24sp"
                         android:textStyle="bold" />
@@ -170,7 +171,7 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Settings Section -->
+        <!-- Profile Settings -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -183,12 +184,11 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Settings Header -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="16dp"
-                    android:text="@string/settings"
+                    android:text="@string/profile_settings"
                     android:textColor="@color/gray_dark"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -212,21 +212,21 @@
                         android:layout_height="24dp"
                         android:layout_marginEnd="16dp"
                         android:src="@drawable/ic_edit"
-                        android:contentDescription="Edit profile"
+                        android:contentDescription="@string/edit_profile"
                         app:tint="@color/gray_medium" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/edit_profile"
+                        android:text="@string/edit_profiles"
                         android:textSize="16sp" />
 
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
+                        android:contentDescription="@string/todos"
                         android:src="@drawable/ic_chevron_right"
-                        android:contentDescription="TODO"
                         app:tint="@color/gray_medium" />
 
                 </LinearLayout>
@@ -250,7 +250,7 @@
                         android:layout_height="24dp"
                         android:layout_marginEnd="16dp"
                         android:src="@drawable/ic_nutrition"
-                        android:contentDescription="Dietary preferences"
+                        android:contentDescription="@string/dietary_preferenceS"
                         app:tint="@color/gray_medium" />
 
                     <TextView
@@ -263,11 +263,37 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
+                        android:contentDescription="@string/tOdo"
                         android:src="@drawable/ic_chevron_right"
-                        android:contentDescription="TODO"
                         app:tint="@color/gray_medium" />
 
                 </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- App Settings -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:text="@string/app_settings"
+                    android:textColor="@color/gray_dark"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
                 <View
                     android:layout_width="match_parent"
@@ -276,19 +302,17 @@
 
                 <!-- Notifications -->
                 <LinearLayout
-                    android:id="@+id/btnNotifications"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp"
-                    android:background="?attr/selectableItemBackground">
+                    android:padding="16dp">
 
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:layout_marginEnd="16dp"
                         android:src="@drawable/ic_notifications"
-                        android:contentDescription="Notifications"
+                        android:contentDescription="@string/notificationS"
                         app:tint="@color/gray_medium" />
 
                     <TextView
@@ -306,11 +330,79 @@
 
                 </LinearLayout>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/gray_divider" />
+
+                <!-- Dark Mode -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:src="@drawable/ic_dark_mode"
+                        android:contentDescription="@string/dark_modE"
+                        app:tint="@color/gray_medium" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/dark_mode"
+                        android:textSize="16sp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchDarkMode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/gray_divider" />
+
+                <!-- Data Saver -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:src="@drawable/ic_data_saver"
+                        android:contentDescription="@string/data_saveR"
+                        app:tint="@color/gray_medium" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/data_saver"
+                        android:textSize="16sp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchDataSaver"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Support Section -->
+        <!-- Privacy & Support -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -322,6 +414,92 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
+                <!-- Privacy Settings -->
+                <LinearLayout
+                    android:id="@+id/btnPrivacySettings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:src="@drawable/ic_privacy"
+                        android:contentDescription="@string/privacy_settingS"
+                        app:tint="@color/gray_medium" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/privacy_settings"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:contentDescription="@string/Todo"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/gray_medium" />
+
+                </LinearLayout>
+
+                <!-- Add this card to your profile layout -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Language Settings -->
+                        <LinearLayout
+                            android:id="@+id/btnLanguageSettings"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="16dp"
+                            android:background="?attr/selectableItemBackground">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_marginEnd="16dp"
+                                android:src="@drawable/ic_language"
+                                android:contentDescription="@string/change_language"
+                                app:tint="@color/gray_medium" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/language_setting"
+                                android:textSize="16sp" />
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/gray_medium" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/gray_divider" />
 
                 <!-- Help & Support -->
                 <LinearLayout
@@ -344,14 +522,14 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/help_amp_support"
+                        android:text="@string/help_support"
                         android:textSize="16sp" />
 
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
+                        android:contentDescription="@string/toDo"
                         android:src="@drawable/ic_chevron_right"
-                        android:contentDescription="TODO"
                         app:tint="@color/gray_medium" />
 
                 </LinearLayout>
@@ -388,8 +566,8 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
+                        android:contentDescription="@string/todO"
                         android:src="@drawable/ic_chevron_right"
-                        android:contentDescription="TODO"
                         app:tint="@color/gray_medium" />
 
                 </LinearLayout>

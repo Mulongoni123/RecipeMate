@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +14,6 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,6 +21,7 @@ import com.example.recipemate.R
 import com.example.recipemate.activity.RecipeDetailActivity
 import com.example.recipemate.adapter.RecipeAdapter
 import com.example.recipemate.auth.AuthManager
+import com.example.recipemate.data.local.FavoritesManager
 import com.example.recipemate.data.remote.Recipe
 import com.example.recipemate.data.remote.RecipeSummary
 import com.example.recipemate.data.remote.RetrofitInstance
@@ -41,7 +42,7 @@ class SearchFragment : Fragment() {
     private lateinit var noResultsState: LinearLayout
 
     private lateinit var recipeAdapter: RecipeAdapter
-    private val authManager = AuthManager()
+    private lateinit var authManager: AuthManager
 
     private var currentRecipes: List<Recipe> = emptyList()
     private var isMealPlanMode = false
@@ -57,6 +58,10 @@ class SearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Initialize AuthManager with proper context
+        authManager = AuthManager(requireContext())
+
         initViews(view)
         setupRecyclerView()
         setupClickListeners()
@@ -141,15 +146,38 @@ class SearchFragment : Fragment() {
 
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                val response = RetrofitInstance.api.searchRecipes(query = query, number = 20)
+                val response = RetrofitInstance.api.searchRecipes(
+                    query = query,
+                    number = 20,
+                    addRecipeInformation = true,  // This should include basic info
+                    fillIngredients = true        // This should include ingredients
+                )
 
                 if (response.isSuccessful) {
-                    val recipes = response.body()?.recipes ?: emptyList()
+                    val recipes = response.body()?.getRecipesOrEmpty() ?: emptyList()
                     currentRecipes = recipes
 
                     if (recipes.isNotEmpty()) {
                         showResults(recipes)
                         tvResultsCount.text = "Found ${recipes.size} recipes"
+
+                        // Debug: Check what data we're getting
+                        recipes.forEach { recipe ->
+                            Log.d("SearchFragment", "=== Recipe: ${recipe.title} ===")
+                            Log.d("SearchFragment", "Time: ${recipe.readyInMinutes}")
+                            Log.d("SearchFragment", "Servings: ${recipe.servings}")
+                            Log.d("SearchFragment", "Ingredients count: ${recipe.getIngredientsOrEmpty().size}")
+                            Log.d("SearchFragment", "Instructions count: ${recipe.getInstructionsOrEmpty().size}")
+
+                            // Log instruction details
+                            recipe.getInstructionsOrEmpty().forEachIndexed { index, instruction ->
+                                Log.d("SearchFragment", "Instruction $index - Name: ${instruction.name}")
+                                Log.d("SearchFragment", "Steps count: ${instruction.steps.size}")
+                                instruction.steps.forEach { step ->
+                                    Log.d("SearchFragment", "  Step ${step.number}: ${step.description}")
+                                }
+                            }
+                        }
                     } else {
                         showNoResults()
                     }
@@ -158,12 +186,12 @@ class SearchFragment : Fragment() {
                 }
             } catch (e: Exception) {
                 showError("Search failed: ${e.message}")
+                Log.e("SearchFragment", "Search error", e)
             } finally {
                 showLoading(false)
             }
         }
     }
-
     private fun onRecipeClick(recipe: Recipe) {
         if (isMealPlanMode) {
             // Return the selected recipe to MealPlannerFragment
@@ -197,23 +225,30 @@ class SearchFragment : Fragment() {
     }
 
     private fun returnToMealPlannerWithResult(recipe: Recipe) {
-        // Use Fragment Result API to communicate with MealPlannerFragment
-        val resultBundle = Bundle().apply {
-            putInt("RECIPE_ID", recipe.id)
-            putString("RECIPE_TITLE", recipe.title)
-            putString("RECIPE_IMAGE", recipe.image)
-            putInt("RECIPE_TIME", recipe.readyInMinutes)
-            putInt("RECIPE_SERVINGS", recipe.servings)
-            putString("MEAL_TYPE", mealType) // FIX: Add meal type to bundle
+        try {
+            // Use requireActivity().supportFragmentManager to ensure we're using the activity's fragment manager
+            val resultBundle = Bundle().apply {
+                putInt("RECIPE_ID", recipe.id)
+                putString("RECIPE_TITLE", recipe.title)
+                putString("RECIPE_IMAGE", recipe.image)
+                putInt("RECIPE_TIME", recipe.readyInMinutes)
+                putInt("RECIPE_SERVINGS", recipe.servings)
+                putString("MEAL_TYPE", mealType)
+            }
+
+            Log.d("SearchFragment", "Sending recipe to meal planner: ${recipe.title} for $mealType")
+
+            // Use the activity's supportFragmentManager
+            requireActivity().supportFragmentManager.setFragmentResult("MEAL_PLAN_RESULT", resultBundle)
+
+            // Navigate back
+            requireActivity().supportFragmentManager.popBackStack()
+
+            Toast.makeText(requireContext(), "Added ${recipe.title} to $mealType", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Log.e("SearchFragment", "Error returning to meal planner", e)
+            Toast.makeText(requireContext(), "Error adding recipe to meal plan", Toast.LENGTH_SHORT).show()
         }
-
-        // Set result for parent fragment (MealPlannerFragment)
-        parentFragmentManager.setFragmentResult("MEAL_PLAN_RESULT", resultBundle)
-
-        // Navigate back
-        parentFragmentManager.popBackStack()
-
-        Toast.makeText(requireContext(), "Added ${recipe.title} to $mealType", Toast.LENGTH_SHORT).show()
     }
     private fun toggleFavorite(recipe: Recipe) {
         val currentUser = authManager.currentUser
@@ -224,30 +259,42 @@ class SearchFragment : Fragment() {
 
         CoroutineScope(Dispatchers.Main).launch {
             try {
+                Log.d("SearchFragment", "=== TOGGLE FAVORITE START ===")
+                Log.d("SearchFragment", "Recipe: ${recipe.title} (ID: ${recipe.id})")
+                Log.d("SearchFragment", "Current favorite status: ${recipe.isFavorite}")
+                Log.d("SearchFragment", "User UID: ${currentUser.uid}")
+
                 if (recipe.isFavorite) {
                     // Remove from favorites
+                    Log.d("SearchFragment", "🔄 Removing from favorites...")
                     authManager.removeFavorite(currentUser.uid, recipe.id)
                     recipe.isFavorite = false
+                    Toast.makeText(requireContext(), "Removed from favorites", Toast.LENGTH_SHORT).show()
                 } else {
                     // Add to favorites
+                    Log.d("SearchFragment", "⭐ Adding to favorites...")
                     val recipeSummary = RecipeSummary(
                         id = recipe.id,
                         title = recipe.title,
                         image = recipe.image ?: ""
                     )
+                    Log.d("SearchFragment", "RecipeSummary: $recipeSummary")
+
                     authManager.addFavorite(currentUser.uid, recipeSummary)
                     recipe.isFavorite = true
+                    Toast.makeText(requireContext(), "Added to favorites! ✅", Toast.LENGTH_SHORT).show()
                 }
 
                 // Update adapter
                 recipeAdapter.updateRecipe(recipe)
+                Log.d("SearchFragment", "=== TOGGLE FAVORITE COMPLETE ===")
 
             } catch (e: Exception) {
+                Log.e("SearchFragment", "❌ ERROR in toggleFavorite: ${e.message}", e)
                 Toast.makeText(requireContext(), "Failed to update favorite", Toast.LENGTH_SHORT).show()
             }
         }
     }
-
     private fun showResults(recipes: List<Recipe>) {
         recipeAdapter.submitList(recipes)
         rvRecipes.visibility = View.VISIBLE
@@ -288,6 +335,7 @@ class SearchFragment : Fragment() {
                     putString("MEAL_TYPE", mealType)
                 }
             }
+
         }
     }
 }

@@ -1,9 +1,12 @@
 package com.example.recipemate.adapter
 
+import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.CheckBox
+import android.widget.ImageButton
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -18,7 +21,7 @@ class GroceryAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GroceryViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_grocery, parent, false)
-        return GroceryViewHolder(view)
+        return GroceryViewHolder(view, onItemCheck, onItemRemove)
     }
 
     override fun onBindViewHolder(holder: GroceryViewHolder, position: Int) {
@@ -26,32 +29,46 @@ class GroceryAdapter(
         holder.bind(groceryItem)
     }
 
-    inner class GroceryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class GroceryViewHolder(
+        itemView: View,
+        private val onItemCheck: (GroceryItem, Boolean) -> Unit,
+        private val onItemRemove: (GroceryItem) -> Unit
+    ) : RecyclerView.ViewHolder(itemView) {
         private val cbItem: CheckBox = itemView.findViewById(R.id.cbItem)
         private val tvItemName: TextView = itemView.findViewById(R.id.tvItemName)
         private val tvAmount: TextView = itemView.findViewById(R.id.tvAmount)
         private val btnRemove: ImageButton = itemView.findViewById(R.id.btnRemove)
 
         fun bind(groceryItem: GroceryItem) {
+            // Remove previous listener to avoid multiple callbacks
+            cbItem.setOnCheckedChangeListener(null)
+
+            // Set data
             tvItemName.text = groceryItem.name
             tvAmount.text = "${groceryItem.amount} ${groceryItem.unit}"
             cbItem.isChecked = groceryItem.isChecked
 
+            // Update strikethrough
+            updateStrikethrough(groceryItem.isChecked)
+
+            // Set checkbox listener
             cbItem.setOnCheckedChangeListener { _, isChecked ->
                 onItemCheck(groceryItem, isChecked)
             }
 
+            // Set remove button listener
             btnRemove.setOnClickListener {
                 onItemRemove(groceryItem)
             }
+        }
 
-            // Strikethrough text when checked
-            if (groceryItem.isChecked) {
-                tvItemName.paintFlags = tvItemName.paintFlags or android.graphics.Paint.STRIKE_THRU_TEXT_FLAG
-                tvAmount.paintFlags = tvAmount.paintFlags or android.graphics.Paint.STRIKE_THRU_TEXT_FLAG
+        private fun updateStrikethrough(isChecked: Boolean) {
+            if (isChecked) {
+                tvItemName.paintFlags = tvItemName.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+                tvAmount.paintFlags = tvAmount.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
             } else {
-                tvItemName.paintFlags = tvItemName.paintFlags and android.graphics.Paint.STRIKE_THRU_TEXT_FLAG.inv()
-                tvAmount.paintFlags = tvAmount.paintFlags and android.graphics.Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                tvItemName.paintFlags = tvItemName.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                tvAmount.paintFlags = tvAmount.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
             }
         }
     }

@@ -2,11 +2,17 @@ package com.example.recipemate.fragment
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.Button
+import android.widget.CalendarView
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.recipemate.R
@@ -15,7 +21,12 @@ import com.example.recipemate.adapter.MealPlanAdapter
 import com.example.recipemate.data.local.GroceryListManager
 import com.example.recipemate.data.local.MealPlanManager
 import com.example.recipemate.data.model.MealPlan
-import java.util.*
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
 
 class MealPlannerFragment : Fragment() {
 
@@ -42,11 +53,57 @@ class MealPlannerFragment : Fragment() {
         initViews(view)
         setupRecyclerView()
         setupClickListeners()
+        setupFragmentResultListener() // Make sure this is called
         loadMealPlanForDate(selectedDate)
 
-        // Set up fragment result listener
-        setupFragmentResultListener()
+
+        // Set initial calendar selection
+        calendarView.date = selectedDate.timeInMillis
     }
+
+    private fun setupFragmentResultListener() {
+        // Use requireActivity().supportFragmentManager for consistency
+        requireActivity().supportFragmentManager.setFragmentResultListener("MEAL_PLAN_RESULT", viewLifecycleOwner) { requestKey, bundle ->
+            Log.d("MealPlannerFragment", "Received fragment result: $requestKey")
+
+            if (requestKey == "MEAL_PLAN_RESULT") {
+                handleMealPlanResult(bundle)
+            }
+        }
+    }
+
+    private fun handleMealPlanResult(bundle: Bundle) {
+        try {
+            val recipeId = bundle.getInt("RECIPE_ID")
+            val recipeTitle = bundle.getString("RECIPE_TITLE") ?: "Unknown Recipe"
+            val recipeImage = bundle.getString("RECIPE_IMAGE")
+            val mealType = bundle.getString("MEAL_TYPE", "Meal")
+            val recipeTime = bundle.getInt("RECIPE_TIME", 0)
+            val recipeServings = bundle.getInt("RECIPE_SERVINGS", 1)
+
+            Log.d("MealPlannerFragment", "Adding recipe: $recipeTitle for $mealType")
+
+            // Create and add the meal plan
+            val mealPlan = MealPlan(
+                id = UUID.randomUUID().toString(),
+                recipeId = recipeId.toInt(),
+                recipeTitle = recipeTitle,
+                recipeImage = recipeImage,
+                date = selectedDate.time,
+                mealType = mealType,
+                servings = recipeServings
+            )
+
+            MealPlanManager.addMeal(mealPlan)
+            loadMealPlanForDate(selectedDate)
+
+            Toast.makeText(requireContext(), "Successfully added $recipeTitle to $mealType", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Log.e("MealPlannerFragment", "Error handling meal plan result", e)
+            Toast.makeText(requireContext(), "Error adding recipe: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
 
     private fun initViews(view: View) {
         calendarView = view.findViewById(R.id.calendarView)
@@ -65,18 +122,14 @@ class MealPlannerFragment : Fragment() {
                 removeMealFromPlan(mealPlan)
             },
             onRecipeClick = { mealPlan ->
-                val intent = Intent(requireContext(), RecipeDetailActivity::class.java).apply {
-                    putExtra("RECIPE_ID", mealPlan.recipeId)
-                    putExtra("RECIPE_TITLE", mealPlan.recipeTitle)
-                    putExtra("RECIPE_IMAGE", mealPlan.recipeImage)
-                }
-                startActivity(intent)
+                openRecipeDetails(mealPlan)
             }
         )
 
         rvMealPlan.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = mealPlanAdapter
+            setHasFixedSize(true)
         }
     }
 
@@ -96,38 +149,17 @@ class MealPlannerFragment : Fragment() {
         }
     }
 
-    private fun setupFragmentResultListener() {
-        // FIX: Use parentFragmentManager instead of childFragmentManager
-        parentFragmentManager.setFragmentResultListener("MEAL_PLAN_RESULT", this) { requestKey, bundle ->
-            if (requestKey == "MEAL_PLAN_RESULT") {
-                val recipeId = bundle.getInt("RECIPE_ID")
-                val recipeTitle = bundle.getString("RECIPE_TITLE") ?: "Unknown Recipe"
-                val recipeImage = bundle.getString("RECIPE_IMAGE")
-                val mealType = bundle.getString("MEAL_TYPE", "Meal") // Get meal type from bundle
-
-                // Add the recipe to meal plan
-                val mealPlan = MealPlan(
-                    recipeId = recipeId,
-                    recipeTitle = recipeTitle,
-                    recipeImage = recipeImage,
-                    date = selectedDate.time,
-                    mealType = mealType,
-                    servings = 1
-                )
-                MealPlanManager.addMeal(mealPlan)
-                loadMealPlanForDate(selectedDate)
-                Toast.makeText(requireContext(), "Added $recipeTitle to $mealType", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     private fun updateSelectedDateText() {
-        val dateFormat = java.text.SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault())
         tvSelectedDate.text = dateFormat.format(selectedDate.time)
     }
 
     private fun loadMealPlanForDate(date: Calendar) {
         val meals = MealPlanManager.getMealsForDate(date.time)
+        updateUI(meals)
+    }
+
+    private fun updateUI(meals: List<MealPlan>) {
         if (meals.isNotEmpty()) {
             mealPlanAdapter.submitList(meals)
             rvMealPlan.visibility = View.VISIBLE
@@ -139,30 +171,43 @@ class MealPlannerFragment : Fragment() {
     }
 
     private fun showAddRecipeDialog() {
-        val dialog = android.app.AlertDialog.Builder(requireContext())
+        val mealTypes = arrayOf("Breakfast", "Lunch", "Dinner", "Snack")
+
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setTitle("Add Recipe to Meal Plan")
             .setMessage("Choose a meal type:")
-            .setItems(arrayOf("Breakfast", "Lunch", "Dinner", "Snack")) { _, which ->
-                val mealTypes = arrayOf("Breakfast", "Lunch", "Dinner", "Snack")
+            .setItems(mealTypes) { _, which ->
                 val mealType = mealTypes[which]
-
-                // Launch SearchFragment in meal plan mode
+                // DEBUG: Check if this is being called
+                Toast.makeText(requireContext(), "Selected: $mealType", Toast.LENGTH_SHORT).show()
                 launchSearchFragmentForMealPlan(mealType)
             }
             .setNegativeButton("Cancel", null)
-            .create()
-        dialog.show()
+            .show()
     }
 
     private fun launchSearchFragmentForMealPlan(mealType: String) {
-        // Create SearchFragment with meal plan mode
-        val searchFragment = SearchFragment.newInstance(mealPlanMode = true, mealType = mealType)
+        try {
+            Log.d("MealPlannerFragment", "Launching SearchFragment for meal type: $mealType")
 
-        // Replace current fragment with SearchFragment
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, searchFragment)
-            .addToBackStack("meal_plan_search")
-            .commit()
+            val searchFragment = SearchFragment().apply {
+                arguments = Bundle().apply {
+                    putBoolean("MEAL_PLAN_MODE", true)
+                    putString("MEAL_TYPE", mealType)
+                    putLong("SELECTED_DATE", selectedDate.timeInMillis)
+                }
+            }
+
+            // Use requireActivity().supportFragmentManager for consistency
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, searchFragment)
+                .addToBackStack("meal_plan_search")
+                .commit()
+
+        } catch (e: Exception) {
+            Log.e("MealPlannerFragment", "Error launching SearchFragment", e)
+            Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun generateGroceryList() {
@@ -177,21 +222,42 @@ class MealPlannerFragment : Fragment() {
 
     private fun showGroceryListDialog(groceryList: List<com.example.recipemate.data.model.GroceryItem>) {
         val items = groceryList.map { item ->
-            "${item.amount} ${item.unit} ${item.name}"
+            "• ${item.amount} ${item.unit} ${item.name}"
         }.toTypedArray()
 
-        val dialog = android.app.AlertDialog.Builder(requireContext())
+        val message = "Generated from your meal plan:\n\n${items.joinToString("\n")}"
+
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
             .setTitle("Grocery List")
-            .setMessage("Generated from your meal plan")
-            .setItems(items) { _, _ -> }
+            .setMessage(message)
             .setPositiveButton("Close", null)
-            .create()
-        dialog.show()
+            .show()
     }
 
     private fun removeMealFromPlan(mealPlan: MealPlan) {
         MealPlanManager.removeMeal(mealPlan)
         loadMealPlanForDate(selectedDate)
         Toast.makeText(requireContext(), "Removed from meal plan", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun openRecipeDetails(mealPlan: MealPlan) {
+        try {
+            val intent = Intent(requireContext(), RecipeDetailActivity::class.java).apply {
+                putExtra("RECIPE_ID", mealPlan.recipeId)
+                putExtra("RECIPE_TITLE", mealPlan.recipeTitle)
+                putExtra("RECIPE_IMAGE", mealPlan.recipeImage)
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Error opening recipe details", Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
+        }
+    }
+
+    // Add this method to handle fragment results when returning from SearchFragment
+    override fun onResume() {
+        super.onResume()
+        // Refresh data when returning to fragment
+        loadMealPlanForDate(selectedDate)
     }
 }

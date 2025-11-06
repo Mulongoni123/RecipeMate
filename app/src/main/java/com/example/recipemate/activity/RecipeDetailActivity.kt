@@ -1,6 +1,7 @@
 package com.example.recipemate.activity
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -68,7 +69,7 @@ class RecipeDetailActivity : AppCompatActivity() {
             finish()
         }
 
-        // Favorite button - updated with working logic
+        // Favorite button
         btnFavorite.setOnClickListener {
             currentRecipe?.let { recipe ->
                 if (isFavorite) {
@@ -81,35 +82,40 @@ class RecipeDetailActivity : AppCompatActivity() {
     }
 
     private fun displayBasicInfo(title: String, image: String?, cookingTime: Int) {
-        val imageView = findViewById<ImageView>(R.id.ivRecipeImage)
-        val titleTextView = findViewById<TextView>(R.id.tvRecipeTitle)
-        val timeTextView = findViewById<TextView>(R.id.tvCookingTime)
+        try {
+            val imageView = findViewById<ImageView>(R.id.ivRecipeImage)
+            val titleTextView = findViewById<TextView>(R.id.tvRecipeTitle)
+            val timeTextView = findViewById<TextView>(R.id.tvCookingTime)
 
-        titleTextView.text = title
+            titleTextView.text = title
 
-        val timeText = if (cookingTime > 0) {
-            "Cooking Time: $cookingTime minutes"
-        } else {
-            "Cooking Time: Not specified"
-        }
-        timeTextView.text = timeText
+            val timeText = if (cookingTime > 0) {
+                "Cooking Time: $cookingTime minutes"
+            } else {
+                "Cooking Time: Not specified"
+            }
+            timeTextView.text = timeText
 
-        // Load image
-        if (!image.isNullOrEmpty()) {
-            Glide.with(this)
-                .load(image)
-                .placeholder(R.drawable.ic_recipe_placeholder)
-                .error(R.drawable.ic_recipe_placeholder)
-                .into(imageView)
-        } else {
-            imageView.setImageResource(R.drawable.ic_recipe_placeholder)
+            // Load image
+            if (!image.isNullOrEmpty()) {
+                Glide.with(this)
+                    .load(image)
+                    .placeholder(R.drawable.ic_recipe_placeholder)
+                    .error(R.drawable.ic_recipe_placeholder)
+                    .into(imageView)
+            } else {
+                imageView.setImageResource(R.drawable.ic_recipe_placeholder)
+            }
+        } catch (e: Exception) {
+            Log.e("RecipeDetailActivity", "Error in displayBasicInfo: ${e.message}")
         }
     }
 
     private fun fetchRecipeDetails(recipeId: Int) {
+        showLoading(true)
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Use your existing RetrofitInstance - this returns Response<Recipe>
                 val response = RetrofitInstance.api.getRecipeInformation(
                     id = recipeId,
                     includeNutrition = false
@@ -118,19 +124,20 @@ class RecipeDetailActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     showLoading(false)
 
-                    // Check if response is successful and has body
                     if (response.isSuccessful && response.body() != null) {
                         val fullRecipe = response.body()!!
+                        fullRecipe.isDetailed = true
                         updateUIWithFullRecipe(fullRecipe)
                     } else {
-                        showError("Failed to load recipe: ${response.message()}")
+                        showError("Could not load full recipe details")
+                        // Don't call showBasicRecipeData() if it's causing crashes
                         showPlaceholderData()
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     showLoading(false)
-                    showError("Failed to load recipe details: ${e.message}")
+                    showError("Network error: ${e.message}")
                     showPlaceholderData()
                 }
             }
@@ -145,31 +152,39 @@ class RecipeDetailActivity : AppCompatActivity() {
         updateFavoriteButton()
 
         // Update ingredients
-        val ingredients = recipe.ingredients.map { ingredient ->
-            "${ingredient.amount} ${ingredient.unit} ${ingredient.name}".trim()
+        val ingredients = recipe.getIngredientsOrEmpty().map { ingredient ->
+            ingredient.original ?: "${ingredient.amount} ${ingredient.unit} ${ingredient.name}".trim()
         }
 
         if (ingredients.isNotEmpty()) {
             val ingredientsAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, ingredients)
             ingredientsListView.adapter = ingredientsAdapter
+            ingredientsListView.visibility = View.VISIBLE
         } else {
             showNoIngredientsMessage()
         }
 
         // Update instructions
-        val instructions = if (recipe.instructions.isNotEmpty()) {
-            recipe.instructions.flatMap { instruction ->
-                instruction.steps.map { step ->
-                    "Step ${step.number}: ${step.description}"
-                }
+        val instructions = mutableListOf<String>()
+
+        recipe.getInstructionsOrEmpty().forEach { instruction ->
+            if (!instruction.name.isNullOrEmpty()) {
+                instructions.add("🔸 ${instruction.name}:")
             }
-        } else {
-            emptyList()
+
+            instruction.steps.forEach { step ->
+                instructions.add("${step.number}. ${step.description}")
+            }
+
+            if (instruction != recipe.getInstructionsOrEmpty().last()) {
+                instructions.add("")
+            }
         }
 
         if (instructions.isNotEmpty()) {
             val instructionsAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, instructions)
             instructionsListView.adapter = instructionsAdapter
+            instructionsListView.visibility = View.VISIBLE
         } else {
             showNoInstructionsMessage()
         }

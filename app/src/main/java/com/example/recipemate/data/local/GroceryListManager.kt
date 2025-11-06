@@ -4,6 +4,7 @@ import com.example.recipemate.data.model.GroceryItem
 import com.example.recipemate.data.model.MealPlan
 import java.util.*
 
+// data/local/GroceryListManager.kt
 object GroceryListManager {
     private val groceryList = mutableListOf<GroceryItem>()
 
@@ -12,12 +13,32 @@ object GroceryListManager {
         val aggregatedItems = mutableMapOf<String, GroceryItem>()
 
         mealPlans.forEach { mealPlan ->
-            // For demo, we'll create some sample ingredients
-            // In real app, you'd fetch the actual recipe ingredients
+            // For demo, create sample ingredients
             val sampleIngredients = listOf(
-                GroceryItem(UUID.randomUUID().toString(), "Tomatoes", 2.0, "pieces", "Produce"),
-                GroceryItem(UUID.randomUUID().toString(), "Olive Oil", 1.0, "cup", "Pantry"),
-                GroceryItem(UUID.randomUUID().toString(), "Garlic", 3.0, "cloves", "Produce")
+                GroceryItem(
+                    id = UUID.randomUUID().toString(),
+                    name = "Tomatoes",
+                    amount = 2.0,
+                    unit = "pieces",
+                    category = "Produce",
+                    isChecked = false
+                ),
+                GroceryItem(
+                    id = UUID.randomUUID().toString(),
+                    name = "Olive Oil",
+                    amount = 1.0,
+                    unit = "cup",
+                    category = "Pantry",
+                    isChecked = false
+                ),
+                GroceryItem(
+                    id = UUID.randomUUID().toString(),
+                    name = "Garlic",
+                    amount = 3.0,
+                    unit = "cloves",
+                    category = "Produce",
+                    isChecked = false
+                )
             )
 
             sampleIngredients.forEach { ingredient ->
@@ -53,5 +74,14 @@ object GroceryListManager {
 
     fun clearGroceryList() {
         groceryList.clear()
+    }
+
+    // New method to toggle item checked state
+    fun toggleItemChecked(itemId: String, isChecked: Boolean) {
+        val index = groceryList.indexOfFirst { it.id == itemId }
+        if (index != -1) {
+            val item = groceryList[index]
+            groceryList[index] = item.copy(isChecked = isChecked)
+        }
     }
 }

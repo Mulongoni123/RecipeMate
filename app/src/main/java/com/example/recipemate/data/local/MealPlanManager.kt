@@ -3,10 +3,15 @@ package com.example.recipemate.data.local
 import com.example.recipemate.data.model.MealPlan
 import java.util.*
 
+// In MealPlanManager.kt
 object MealPlanManager {
     private val mealPlans = mutableListOf<MealPlan>()
 
     fun addMeal(mealPlan: MealPlan) {
+        // Remove any existing meal for the same date and meal type
+        mealPlans.removeAll { existing ->
+            isSameDate(existing.date, mealPlan.date) && existing.mealType == mealPlan.mealType
+        }
         mealPlans.add(mealPlan)
     }
 
@@ -15,16 +20,23 @@ object MealPlanManager {
     }
 
     fun getMealsForDate(date: Date): List<MealPlan> {
-        val calendar = Calendar.getInstance().apply { time = date }
         return mealPlans.filter { mealPlan ->
-            val mealCalendar = Calendar.getInstance().apply { time = mealPlan.date }
-            calendar.get(Calendar.YEAR) == mealCalendar.get(Calendar.YEAR) &&
-                    calendar.get(Calendar.MONTH) == mealCalendar.get(Calendar.MONTH) &&
-                    calendar.get(Calendar.DAY_OF_MONTH) == mealCalendar.get(Calendar.DAY_OF_MONTH)
+            isSameDate(mealPlan.date, date)
         }.sortedBy { it.mealType }
     }
 
     fun getAllMeals(): List<MealPlan> {
         return mealPlans.toList()
     }
+
+    private fun isSameDate(date1: Date, date2: Date): Boolean {
+        val cal1 = Calendar.getInstance().apply { time = date1 }
+        val cal2 = Calendar.getInstance().apply { time = date2 }
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+                cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH) &&
+                cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH)
+    }
 }
+
+
+

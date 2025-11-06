@@ -102,4 +102,13 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+
+    implementation("com.facebook.android:facebook-login:16.3.0")
+// For Android Keystore
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
+    implementation("com.google.firebase:firebase-messaging-ktx:23.3.1")
+// WorkManager for background tasks
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 }
